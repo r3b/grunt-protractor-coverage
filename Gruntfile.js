@@ -7,7 +7,7 @@
  */
 
 'use strict';
-
+var tmp = require('tmp');
 module.exports = function(grunt) {
 
   // Project configuration.
@@ -30,7 +30,28 @@ module.exports = function(grunt) {
 
     // Configuration to be run (and then tested).
     protractor_coverage: {
-      default_options: {
+      options: {
+        configFile: "test/protractorConf.js", // Default config file
+        keepAlive: true, // If false, the grunt process stops when the test fails.
+        noColor: false, // If true, protractor will not use colors in its output.
+        args: {
+          baseUrl:'http://localhost:3000/'
+        }
+      },
+      phantom: {
+        options: {
+          args: {
+            baseUrl:'http://localhost:3000/',
+            // Arguments passed to the command
+            'browser': 'phantomjs',
+            'params':{
+              test:'test',
+              test1:'test1'
+            }
+          }
+        }
+      },      
+      /*default_options: {
         options: {
         },
         files: {
@@ -45,7 +66,7 @@ module.exports = function(grunt) {
         files: {
           'tmp/custom_options': ['test/fixtures/testing', 'test/fixtures/123'],
         },
-      },
+      },*/
     },
 
     // Unit tests.

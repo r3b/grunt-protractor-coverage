@@ -1,0 +1,41 @@
+{
+  "name": "grunt-protractor-coverage",
+  "version": "0.1.0",
+  "description": "Instrument your code and gather coverage data from Protractor E2E tests",
+  "main": "Gruntfile.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "grunt": "~0.4.4",
+    "grunt-istanbul": "~0.2.5",
+    "grunt-protractor-runner": "~0.2.4",
+    "protractor": "~0.20.1",
+    "tmp": "~0.0.23"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.1.0",
+    "grunt-contrib-clean": "~0.4.0a",
+    "grunt-contrib-nodeunit": "~0.1.0",
+    "grunt": "~0.4.0rc2"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/r3b/grunt-protractor-coverage.git"
+  },
+  "keywords": [
+    "gruntplugin",
+    "protractor",
+    "coverage",
+    "testing",
+    "istanbul"
+  ],
+  "author": "ryan bridges",
+  "license": "APLv2",
+  "bugs": {
+    "url": "https://github.com/r3b/grunt-protractor-coverage/issues"
+  }
+}

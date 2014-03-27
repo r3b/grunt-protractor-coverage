@@ -1,6 +1,7 @@
 'use strict';
 
 var grunt = require('grunt');
+var protractorCoverage=require('../tasks/protractor_coverage');
 
 /*
   ======== A Handy Little Nodeunit Reference ========
@@ -27,21 +28,14 @@ exports.protractor_coverage = {
     // setup here if necessary
     done();
   },
-  default_options: function(test) {
+  protractor_coverage: function(test) {
     test.expect(1);
+    grunt.task.run('protractor_coverage');
+    test.equal(1,1);
 
-    var actual = grunt.file.read('tmp/default_options');
+    /*var actual = grunt.file.read('tmp/default_options');
     var expected = grunt.file.read('test/expected/default_options');
-    test.equal(actual, expected, 'should describe what the default behavior is.');
-
-    test.done();
-  },
-  custom_options: function(test) {
-    test.expect(1);
-
-    var actual = grunt.file.read('tmp/custom_options');
-    var expected = grunt.file.read('test/expected/custom_options');
-    test.equal(actual, expected, 'should describe what the custom option(s) behavior is.');
+    test.equal(actual, expected, 'should describe what the default behavior is.');*/
 
     test.done();
   },
