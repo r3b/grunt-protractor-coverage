@@ -1,0 +1,25 @@
+'use strict';
+var fs = require('fs');
+describe('Output the code coverage objects', function() {
+  var browserCoverageObject = "return ('<%=coverage%>' in window)?window.<%=coverage%>:null;";
+  browser.sleep(3000);
+  browser.driver.get(browser.baseUrl + '#');
+  browser.waitForAngular();
+  browser.wait(function() {
+    return element(by.id('new-todo')).isPresent();
+  });
+
+  browser.driver.executeScript(browserCoverageObject).then(function(val) {
+    if (val) {
+      fs.writeFile("<%=filename%>", JSON.stringify(val), function(err) {
+        if (err) {
+          console.error('Could not write coverage object to <%=filename%>');
+        } else {
+          console.log('Test coverage written to <%=filename%>');
+        }
+      });
+    } else {
+      console.warn('No coverage object in the browser.');
+    }
+  });
+});

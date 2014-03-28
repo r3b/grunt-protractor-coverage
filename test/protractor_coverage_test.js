@@ -29,14 +29,6 @@ exports.protractor_coverage = {
     done();
   },
   protractor_coverage: function(test) {
-    test.expect(1);
-    grunt.task.run('protractor_coverage');
-    test.equal(1,1);
-
-    /*var actual = grunt.file.read('tmp/default_options');
-    var expected = grunt.file.read('test/expected/default_options');
-    test.equal(actual, expected, 'should describe what the default behavior is.');*/
-
     test.done();
   },
 };

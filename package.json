@@ -11,13 +11,18 @@
     "grunt-istanbul": "~0.2.5",
     "grunt-protractor-runner": "~0.2.4",
     "protractor": "~0.20.1",
-    "tmp": "~0.0.23"
+    "dargs-object": "~0.2.0",
+    "mkdirp": "~0.3.5",
+    "temporary": "0.0.8",
+    "tmp": "0.0.23",
+    "grunt-contrib-connect": "~0.7.1"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "~0.1.0",
     "grunt-contrib-clean": "~0.4.0a",
     "grunt-contrib-nodeunit": "~0.1.0",
-    "grunt": "~0.4.0rc2"
+    "grunt": "~0.4.0rc2",
+    "grunt-contrib-copy": "~0.5.0"
   },
   "scripts": {
     "test": "grunt test"
