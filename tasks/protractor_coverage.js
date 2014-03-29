@@ -12,11 +12,16 @@ var util = require('util');
 var path = require('path');
 var dargs = require('dargs-object');
 var tmp = require('temporary');
+var esprima=require('esprima');
+var estraverse=require('estraverse');
+var escodegen=require('escodegen')
 
 module.exports = function(grunt) {
 
   grunt.registerMultiTask('protractor_coverage', 'Instrument your code and gather coverage data from Protractor E2E tests', function() {
     var coverageSpecSource = grunt.file.read("resources/specFile.tmpl");
+    var saveCoverageSource = grunt.file.read("resources/saveCoverage.tmpl");
+    var tmpSpecfileDir = new tmp.Dir();
     // '.../node_modules/protractor/lib/protractor.js'
     var protractorMainPath = require.resolve('protractor');
     // '.../node_modules/protractor/bin/protractor'
@@ -62,31 +67,58 @@ module.exports = function(grunt) {
       return args;
     }, {});
 
-    var specFile = (new tmp.File()).path;
-    var coverageFile = path.resolve(opts.coverageFile) || (new tmp.File()).path;
-    var coverageDir = path.dirname(coverageFile);
+    // var specFile = (new tmp.File()).path;
+    // var coverageFile = path.resolve(opts.coverageFile) || (new tmp.File()).path;
+    var coverageDir = path.resolve(opts.coverageDir||'coverage/');
     grunt.file.mkdir(coverageDir);
-    var specFileContent = grunt.template.process(coverageSpecSource, {
+    /*var specFileContent = grunt.template.process(coverageSpecSource, {
       data: {
         filename: coverageFile,
         coverage: '__coverage__'
       }
     });
-    grunt.file.write(specFile, specFileContent);
-
-    suppliedArgs.specs = suppliedArgs.specs || [];
+    grunt.file.write(specFile, specFileContent);*/
     var pConfigs = require(path.resolve(opts.configFile));
-    suppliedArgs.specs = suppliedArgs.specs.concat(pConfigs.config.specs || []);
-    suppliedArgs.specs.push(specFile);
-    suppliedArgs.specs = grunt.file.expand(suppliedArgs.specs);
+    var specs=suppliedArgs.specs || [];
+    suppliedArgs.specs=[];
+    specs = specs.concat(pConfigs.config.specs || []);
+    /*suppliedArgs.specs.push(specFile);
+    suppliedArgs.specs = grunt.file.expand(suppliedArgs.specs);*/
 
-
+    //for each spec file, wrap each method call with a closure to save the coverage object
+    var saveCoverageContent=grunt.template.process( saveCoverageSource, {
+      data: {
+        dirname: coverageDir,
+        coverage: '__coverage__'
+      }
+    });
+    var saveCoverageAST=esprima.parse(saveCoverageContent);
+    specs.forEach(function(pattern){
+      grunt.file.expand(pattern).forEach(function(file){
+        var code= grunt.file.read(file);
+        var ast=esprima.parse(code);
+        if(!ast)return;
+        estraverse.traverse(ast, {
+          enter: function (node, parent) {
+            if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='describe'){
+              node.arguments
+                .filter(function(n){return n.type==='FunctionExpression'})
+                .forEach(function(f){
+                  f.body.body=saveCoverageAST.body.concat(f.body.body)
+                });
+            }
+          }
+        });
+        var newSpecFile=(new tmp.File()).path;
+        grunt.file.write(newSpecFile, escodegen.generate(ast));
+        suppliedArgs.specs.push(newSpecFile);
+      });
+    });
     args = args.concat(dargs(suppliedArgs, {
       joinLists: true
     }));
     //grunt.verbose.writeln("Config:\n"+JSON.stringify(pConfigs, null, 4));
     grunt.verbose.writeln("Specs: \n\t" + suppliedArgs.specs.join("\n\t"));
-    grunt.verbose.writeln("Coverage File: \n\t" + coverageFile);
     grunt.verbose.writeln("Spawn node with arguments: " + args);
     // Spawn protractor command
     var done = this.async();

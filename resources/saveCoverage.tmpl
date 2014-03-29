@@ -1,0 +1,17 @@
+var fs=fs||require("fs");
+afterEach(function(){
+  browser.driver.executeScript("return ('<%=coverage%>' in window)?window.<%=coverage%>:null;").then(function(val) {
+    var filename='<%=dirname%>/'+Date.now().toString()+'.json';
+    if (val) {
+      fs.writeFile(filename, JSON.stringify(val), function(err) {
+        if (err) {
+          console.error('Could not write coverage object to %s', filename);
+        } else {
+          console.log('Test coverage written to %s', filename);
+        }
+      });
+    } else {
+      console.warn('No coverage object in the browser.');
+    }
+  });
+});

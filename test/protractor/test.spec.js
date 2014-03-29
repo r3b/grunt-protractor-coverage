@@ -9,4 +9,13 @@ describe('Ensure that the plugin works', function() {
 		});
 
 	});
+	it('should continue doing nothing.', function() {
+		browser.sleep(1000);
+		browser.driver.get(browser.baseUrl+'#');
+		browser.waitForAngular();
+		browser.wait(function() {
+			return element(by.id('new-todo')).isPresent();
+		});
+
+	});
 });

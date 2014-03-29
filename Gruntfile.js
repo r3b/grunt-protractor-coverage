@@ -25,7 +25,7 @@ module.exports = function(grunt) {
 
     // Before generating any new files, remove any previously-created files.
     clean: {
-      tests: ['tmp', 'build', 'instrumented'],
+      tests: ['tmp', 'build', 'instrumented', 'coverage', 'reports'],
     },
     connect: {
       server: {
@@ -41,7 +41,7 @@ module.exports = function(grunt) {
         configFile: "test/protractorConf.js", // Default config file
         keepAlive: true, // If false, the grunt process stops when the test fails.
         noColor: false, // If true, protractor will not use colors in its output.
-        coverageFile: 'coverage/coverage.json',
+        coverageDir: 'coverage',
         args: {}
       },
       phantom: {
