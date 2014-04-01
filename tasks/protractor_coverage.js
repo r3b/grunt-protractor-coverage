@@ -14,19 +14,11 @@ var dargs = require('dargs-object');
 var tmp = require('temporary');
 var esprima=require('esprima');
 var estraverse=require('estraverse');
-var escodegen=require('escodegen')
+var escodegen=require('escodegen');
 
 module.exports = function(grunt) {
 
   grunt.registerMultiTask('protractor_coverage', 'Instrument your code and gather coverage data from Protractor E2E tests', function() {
-    var saveCoverageSource = grunt.file.read("resources/saveCoverage.tmpl");
-    var saveCoverageContent=grunt.template.process( saveCoverageSource, {
-      data: {
-        dirname: coverageDir,
-        coverage: '__coverage__'
-      }
-    });
-    var saveCoverageAST=esprima.parse(saveCoverageContent);
     // '.../node_modules/protractor/lib/protractor.js'
     var protractorMainPath = require.resolve('protractor');
     // '.../node_modules/protractor/bin/protractor'
@@ -41,6 +33,19 @@ module.exports = function(grunt) {
       debug: false,
       args: {}
     });
+    var saveCoverageTemplate = grunt.file.expand(["resources/saveCoverage.tmpl", "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
+    if(!saveCoverageTemplate){
+      grunt.fail.fatal("Coverage template file not found.");
+    }
+    var coverageDir = path.resolve(opts.coverageDir||'coverage/');
+    var saveCoverageSource = grunt.file.read(saveCoverageTemplate);
+    var saveCoverageContent=grunt.template.process( saveCoverageSource, {
+      data: {
+        dirname: coverageDir,
+        coverage: '__coverage__'
+      }
+    });
+    var saveCoverageAST=esprima.parse(saveCoverageContent);
     grunt.verbose.writeln("Options: " + util.inspect(opts));
 
     var keepAlive = opts['keepAlive'];
@@ -71,28 +76,52 @@ module.exports = function(grunt) {
       }
       return args;
     }, {});
-
-    var coverageDir = path.resolve(opts.coverageDir||'coverage/');
+    var configDir=path.dirname(path.resolve(opts.configFile));
     grunt.file.mkdir(coverageDir);
 
     var pConfigs = require(path.resolve(opts.configFile));
     var specs=suppliedArgs.specs || [];
     suppliedArgs.specs=[];
     specs = specs.concat(pConfigs.config.specs || []);
-
     //for each spec file, wrap each method call with a closure to save the coverage object
     specs.forEach(function(pattern){
-      grunt.file.expand(pattern).forEach(function(file){
+      var files=[];
+      files=files.concat(grunt.file.expand(configDir+'/'+pattern));
+      if(files.length===0){
+        files=files.concat(grunt.file.expand(process.cwd()+'/'+pattern));
+      }
+      files.forEach(function(file){
         var code= grunt.file.read(file);
         var ast=esprima.parse(code);
-        if(!ast)return;
+        if(!ast){
+          return;
+        }
         estraverse.traverse(ast, {
           enter: function (node, parent) {
             if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='describe'){
               node.arguments
-                .filter(function(n){return n.type==='FunctionExpression'})
+                .filter(function(n){return n.type==='FunctionExpression';})
                 .forEach(function(f){
-                  f.body.body=saveCoverageAST.body.concat(f.body.body)
+                  f.body.body=saveCoverageAST.body.concat(f.body.body);
+                });
+            }
+          }
+        });
+        estraverse.traverse(ast, {
+          enter: function (node, parent) {
+            if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='require'){
+              node.arguments=node.arguments
+                .map(function(f){
+                  if(f.type==='Literal'){
+                    grunt.verbose.warn(JSON.stringify(f,null,4));
+                    if(/^\.\//.test(f.value)){
+                      if(!/\.js$/.test(f.value)){
+                        f.value=f.value+'.js';
+                      }
+                    }
+                    f.value=f.value.replace(/^\.\//, path.dirname(file)+'/');
+                  }
+                  return f;
                 });
             }
           }
