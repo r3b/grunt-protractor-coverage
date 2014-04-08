@@ -38,6 +38,7 @@ module.exports = function(grunt) {
       grunt.fail.fatal("Coverage template file not found.");
     }
     var coverageDir = path.resolve(opts.coverageDir||'coverage/');
+    coverageDir = coverageDir.replace(/\\/g,'/');
     var saveCoverageSource = grunt.file.read(saveCoverageTemplate);
     var saveCoverageContent=grunt.template.process( saveCoverageSource, {
       data: {
