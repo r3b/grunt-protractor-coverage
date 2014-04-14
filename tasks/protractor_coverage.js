@@ -8,7 +8,9 @@
 
 'use strict';
 
+var http = require('http');
 var util = require('util');
+var fs = require('fs');
 var path = require('path');
 var dargs = require('dargs-object');
 var tmp = require('temporary');
@@ -138,7 +140,31 @@ module.exports = function(grunt) {
 
     grunt.verbose.writeln("Specs: \n\t" + suppliedArgs.specs.join("\n\t"));
     grunt.verbose.writeln("Spawn node with arguments: " + args);
+    // start the collector
+    var collector=require('coverage-collector');
+    collector(3001);
+
     // Spawn protractor command
+    function getCoverageData(callback){
+        http.get("http://localhost:3001/data", function(res) {
+          var payload="";
+          res.on('data', function (chunk) {
+            payload+=chunk;
+            // grunt.log.warn('BODY: ' + chunk);
+          });
+          res.on('end', function(){
+            http.get("http://localhost:3001/done", function(res) {
+              if(callback){callback(payload);}
+            })
+            .on('error', function(e) {
+              grunt.log.error("Got error: " + e.message);
+              if(callback){callback(payload);}
+            });
+          });
+        }).on('error', function(e) {
+          grunt.log.error("Got error: " + e.message);
+        });
+      }
     var done = this.async();
     grunt.util.spawn({
         cmd: 'node',
@@ -148,22 +174,48 @@ module.exports = function(grunt) {
         }
       },
       function(error, result, code) {
-        if (error) {
-          grunt.log.error(String(result));
-          if (code === 1 && keepAlive) {
-            // Test fails but do not want to stop the grunt process.
-            grunt.log.oklns("Test failed but keep the grunt process alive.");
-            done();
-            done = null;
+        
+          if (error) {
+            grunt.log.error(String(result));
+            if (code === 1 && keepAlive) {
+              // Test fails but do not want to stop the grunt process.
+              grunt.log.oklns("Test failed but keep the grunt process alive.");
+              getCoverageData(function(payload){
+                try{
+                  var data=JSON.parse(payload);
+                  data.forEach(function(obj, i){
+                    var filename=path.normalize([coverageDir,'/',i, '.json'].join(''));
+                    fs.writeFileSync(filename, JSON.stringify(obj));
+                  });
+                }catch(e){
+                  grunt.log.error("Got error: " + e.message);
+                }
+
+                done();
+                done = null;
+              });
+            } else {
+              // Test fails and want to stop the grunt process,
+              // or protractor exited with other reason.
+              grunt.fail.fatal('protractor exited with code: ' + code, 3);
+            }
           } else {
-            // Test fails and want to stop the grunt process,
-            // or protractor exited with other reason.
-            grunt.fail.fatal('protractor exited with code: ' + code, 3);
+              getCoverageData(function(payload){
+                try{
+                  var data=JSON.parse(payload);
+                  data.forEach(function(obj, i){
+                    var filename=path.normalize([coverageDir,'/',i, '.json'].join(''));
+                    fs.writeFileSync(filename, JSON.stringify(obj));
+                  });
+                }catch(e){
+                  grunt.log.error("Got error: " + e.message);
+                }
+
+                done();
+                done = null;
+              });
           }
-        } else {
-          done();
-          done = null;
-        }
+       // });
       }
     );
   });

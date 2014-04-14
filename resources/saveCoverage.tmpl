@@ -1,15 +1,30 @@
 var fs=fs||require("fs");
+var http=http||require("http");
+var options = {
+  hostname: 'localhost',
+  port: 3001,
+  path: '/data',
+  method: 'POST',
+  headers:{
+    'Content-Type':'application/json'
+  }
+};
+function saveCoverage(data){
+  var req = http.request(options, function(res) {
+  });
+  req.on('error', function(e) {
+    console.log('problem with request: ' + e.message);
+  });
+
+  // write data to request body
+  req.write(JSON.stringify(data));
+  req.write('\n');
+  req.end();
+}
 afterEach(function(){
   browser.driver.executeScript("return ('<%=coverage%>' in window)?window.<%=coverage%>:null;").then(function(val) {
-    var filename='<%=dirname%>/'+Date.now().toString()+'.json';
     if (val) {
-      fs.writeFile(filename, JSON.stringify(val), function(err) {
-        if (err) {
-          console.error('Could not write coverage object to %s', filename);
-        } else {
-          console.log('Test coverage written to %s', filename);
-        }
-      });
+      saveCoverage(val);
     } else {
       console.warn('No coverage object in the browser.');
     }
