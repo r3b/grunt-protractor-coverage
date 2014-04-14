@@ -11,3 +11,5 @@ addons:
       secure: vzmgWK87Z4F8e6D8G5f6uogQeKeVFW8mortiDY0LctDHn5xWQSFdo0xWnjAs5MDBc1fgHwplqV93n5fMwu3BCuDZTPPJ8v2T3jTk2Fe8YlMVu8Hh3G6e2qRySimN8gILkpl/FC5BffbMsjNp8zultfv8M3gTX90WSK6ny4TQKwI=
     access_key:
       secure: Jw9dhWLg60cEpFwmdBwg5lBe0BnGEM0c801zlaT30Ma6k0I2nNOH93ZVPH3ejxlbaYcjKrV2/A5ajUYO0OrlRPrblKO2JS5V355yPauXAC+fMbkbGiKHTQbgmzdk782u1ETy+bfGiZrH+BEkVlaVfpyguzEBieriybRr4+H6FFg=
+before_script:
+  - "npm i"
