@@ -148,9 +148,12 @@ module.exports = function(grunt) {
     args = args
       .concat(dargs(suppliedArgs, {
         joinLists: true
-      }))
-      .concat(grunt.option.flags())
-      .unique();
+      }));
+    var gargs=grunt.option.flags()
+      .filter(function(f){return args.indexOf(f)===-1;})
+      .map(function(f){return f.split('=');})
+      .reduce(function(a, f){return a.concat(f);},[]);
+    args=args.concat(gargs);
 
     grunt.verbose.writeln("Specs: \n\t" + suppliedArgs.specs.join("\n\t"));
     grunt.verbose.writeln("Spawn node with arguments: " + args);
