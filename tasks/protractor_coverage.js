@@ -17,7 +17,18 @@ var tmp = require('temporary');
 var esprima=require('esprima');
 var estraverse=require('estraverse');
 var escodegen=require('escodegen');
-
+Array.prototype.unique = function() {
+    var a = [], l = this.length;
+    for(var i=0; i<l; i++) {
+      for(var j=i+1; j<l; j++){
+        if (this[i] === this[j]){
+          j = ++i;
+        }
+      }
+      a.push(this[i]);
+    }
+    return a;
+};
 module.exports = function(grunt) {
 
   grunt.registerMultiTask('protractor_coverage', 'Instrument your code and gather coverage data from Protractor E2E tests', function() {
@@ -134,9 +145,12 @@ module.exports = function(grunt) {
         suppliedArgs.specs.push(newSpecFile);
       });
     });
-    args = args.concat(dargs(suppliedArgs, {
-      joinLists: true
-    }));
+    args = args
+      .concat(dargs(suppliedArgs, {
+        joinLists: true
+      }))
+      .concat(grunt.option.flags())
+      .unique();
 
     grunt.verbose.writeln("Specs: \n\t" + suppliedArgs.specs.join("\n\t"));
     grunt.verbose.writeln("Spawn node with arguments: " + args);
