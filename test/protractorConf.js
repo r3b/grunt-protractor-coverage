@@ -36,8 +36,8 @@ exports.config = {
 
   // The address of a running selenium server. If specified, Protractor will
   // connect to an already running instance of selenium. This usually looks like
-  seleniumAddress: 'http://localhost:4444/wd/hub',
-  // seleniumAddress:  'http://ondemand.saucelabs.com/wd/hub',
+  // seleniumAddress: 'http://localhost:4444/wd/hub',
+  seleniumAddress:  'http://ondemand.saucelabs.com/wd/hub',
   // If sauceUser and sauceKey are specified, seleniumServerJar will be ignored.
   // The tests will be run remotely using SauceLabs.
  // sauceUser: 'fasterness',
@@ -60,11 +60,14 @@ exports.config = {
   // and
   // https://code.google.com/p/selenium/source/browse/javascript/webdriver/capabilities.js
   capabilities: {
-    // 'username': 'fasterness',
-    // 'accessKey':'128690e9-57c0-485c-9728-464a08acbf69',
+    'username': process.env['SAUCE_USERNAME'],
+    'accessKey':process.env['SAUCE_ACCESS_KEY'],
     'browserName': 'chrome',
    // 'browserName': 'firefox'
   //  'browserName': 'phantomjs'
+    'build': process.env['TRAVIS_BUILD_NUMBER'],
+    'tags': ['CI'],
+    'tunnel-identifier': process.env['TRAVIS_JOB_NUMBER'],
   },
   params: {
     
