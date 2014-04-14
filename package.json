@@ -22,10 +22,11 @@
     "coverage-collector": "0.0.3"
   },
   "devDependencies": {
+    "grunt": "~0.4.4",
+    "grunt-cli": "~0.1.11",
     "grunt-contrib-jshint": "~0.1.0",
     "grunt-contrib-clean": "~0.4.0a",
     "grunt-contrib-nodeunit": "~0.1.0",
-    "grunt": "~0.4.0rc2",
     "grunt-contrib-copy": "~0.5.0"
   },
   "scripts": {
