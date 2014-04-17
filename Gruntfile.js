@@ -44,17 +44,18 @@ module.exports = function(grunt) {
         coverageDir: 'coverage',
         args: {}
       },
-      phantom: {
+      local: {
         options: {
           args: {
             baseUrl: 'http://localhost:3000/',
             // Arguments passed to the command
-            'browser': 'phantomjs'
+            'browser': 'chrome'
           }
         }
       },
-      chrome: {
+      remote: {
         options: {
+          configFile: "test/protractorConf.remote.js", // Default config file
           args: {
             baseUrl: 'http://localhost:3000/',
             // Arguments passed to the command
@@ -107,7 +108,8 @@ module.exports = function(grunt) {
 
   // Whenever the "test" task is run, first clean the "tmp" dir, then run this
   // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:chrome', 'makeReport']);
+  grunt.registerTask('test', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:local', 'makeReport']);
+  grunt.registerTask('test-remote', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:remote', 'makeReport']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);
