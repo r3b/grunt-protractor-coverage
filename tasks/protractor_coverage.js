@@ -30,6 +30,47 @@ Array.prototype.unique = function() {
     return a;
 };
 module.exports = function(grunt) {
+  function instrumentSpecFile(payload, file){
+    var code= grunt.file.read(file);
+    var ast=esprima.parse(code);
+    if(!ast){
+      return;
+    }
+    estraverse.traverse(ast, {
+      enter: function (node, parent) {
+        if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='describe'){
+          node.arguments
+            .filter(function(n){return n.type==='FunctionExpression';})
+            .forEach(function(f){
+              f.body.body=payload.body.concat(f.body.body);
+            });
+        }
+      }
+    });
+    estraverse.traverse(ast, {
+      enter: function (node, parent) {
+        if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='require'){
+          node.arguments=node.arguments
+            .map(function(f){
+              if(f.type==='Literal'){
+                grunt.verbose.warn(JSON.stringify(f,null,4));
+                if(/^\.\//.test(f.value)){
+                  if(!/\.js$/.test(f.value)){
+                    f.value=f.value+'.js';
+                  }
+                }
+                f.value=f.value.replace(/^\.\//, path.dirname(file)+'/');
+              }
+              return f;
+            });
+        }
+      }
+    });
+    var newSpecFile=(new tmp.File()).path;
+    grunt.verbose.writeln("Writing new Spec file: %s", newSpecFile);
+    grunt.file.write(newSpecFile, escodegen.generate(ast));
+    return newSpecFile;
+  }
 
   grunt.registerMultiTask('protractor_coverage', 'Instrument your code and gather coverage data from Protractor E2E tests', function() {
     // '.../node_modules/protractor/lib/protractor.js'
@@ -97,54 +138,15 @@ module.exports = function(grunt) {
     var specs=suppliedArgs.specs || [];
     suppliedArgs.specs=[];
     specs = specs.concat(pConfigs.config.specs || []);
+    grunt.verbose.writeln("Provided specs:", specs);
+    var files = grunt.file.expand({cwd:configDir},specs);
+    if(!files.length){
+      files=grunt.file.expand({cwd:process.cwd()},specs);
+    }
+    grunt.verbose.writeln("Expanded specs:", files);
     //for each spec file, wrap each method call with a closure to save the coverage object
-    specs.forEach(function(pattern){
-      var files=[];
-      files=files.concat(grunt.file.expand(configDir+'/'+pattern));
-      if(files.length===0){
-        files=files.concat(grunt.file.expand(process.cwd()+'/'+pattern));
-      }
-      files.forEach(function(file){
-        var code= grunt.file.read(file);
-        var ast=esprima.parse(code);
-        if(!ast){
-          return;
-        }
-        estraverse.traverse(ast, {
-          enter: function (node, parent) {
-            if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='describe'){
-              node.arguments
-                .filter(function(n){return n.type==='FunctionExpression';})
-                .forEach(function(f){
-                  f.body.body=saveCoverageAST.body.concat(f.body.body);
-                });
-            }
-          }
-        });
-        estraverse.traverse(ast, {
-          enter: function (node, parent) {
-            if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='require'){
-              node.arguments=node.arguments
-                .map(function(f){
-                  if(f.type==='Literal'){
-                    grunt.verbose.warn(JSON.stringify(f,null,4));
-                    if(/^\.\//.test(f.value)){
-                      if(!/\.js$/.test(f.value)){
-                        f.value=f.value+'.js';
-                      }
-                    }
-                    f.value=f.value.replace(/^\.\//, path.dirname(file)+'/');
-                  }
-                  return f;
-                });
-            }
-          }
-        });
-        var newSpecFile=(new tmp.File()).path;
-        grunt.file.write(newSpecFile, escodegen.generate(ast));
-        suppliedArgs.specs.push(newSpecFile);
-      });
-    });
+    suppliedArgs.specs=files.map(function(file){return instrumentSpecFile(saveCoverageAST, file);});
+
     args = args
       .concat(dargs(suppliedArgs, {
         joinLists: true
@@ -219,11 +221,11 @@ module.exports = function(grunt) {
           } else {
               getCoverageData(function(payload){
                 try{
-                  var data=JSON.parse(payload);
-                  data.forEach(function(obj, i){
-                    var filename=path.normalize([coverageDir,'/',i, '.json'].join(''));
-                    fs.writeFileSync(filename, JSON.stringify(obj));
-                  });
+                  // var data=JSON.parse(payload);
+                  // data.forEach(function(obj, i){
+                    var filename=path.normalize([coverageDir,'/coverage.json'].join(''));
+                    fs.writeFileSync(filename, payload);
+                  // });
                 }catch(e){
                   grunt.log.error("Got error: " + e.message);
                 }
