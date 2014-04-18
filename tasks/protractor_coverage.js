@@ -53,7 +53,6 @@ module.exports = function(grunt) {
           node.arguments=node.arguments
             .map(function(f){
               if(f.type==='Literal'){
-                grunt.verbose.warn(JSON.stringify(f,null,4));
                 if(/^\.\//.test(f.value)){
                   if(!/\.js$/.test(f.value)){
                     f.value=f.value+'.js';
@@ -110,7 +109,7 @@ module.exports = function(grunt) {
       "rootElement", "browser", "chromeDriver", "chromeOnly", "sauceUser",
       "sauceKey", "framework",
       //list
-      "specs",
+      "specs","exclude",
       //boolean
       "includeStackTrace", "verbose",
       //object
@@ -136,13 +135,14 @@ module.exports = function(grunt) {
 
     var pConfigs = require(path.resolve(opts.configFile));
     var specs=suppliedArgs.specs || [];
+    var excludes=suppliedArgs.exclude || [];
     suppliedArgs.specs=[];
     specs = specs.concat(pConfigs.config.specs || []);
+    excludes= excludes.concat(pConfigs.config.exclude || []);
+    excludes=grunt.file.expand(excludes);
     grunt.verbose.writeln("Provided specs:", specs);
-    var files = grunt.file.expand({cwd:configDir},specs);
-    if(!files.length){
-      files=grunt.file.expand({cwd:process.cwd()},specs);
-    }
+    grunt.verbose.writeln("Exclusions:", excludes);
+    var files = grunt.file.expand(specs).filter(function(file){return excludes.indexOf(file)===-1;});
     grunt.verbose.writeln("Expanded specs:", files);
     //for each spec file, wrap each method call with a closure to save the coverage object
     suppliedArgs.specs=files.map(function(file){return instrumentSpecFile(saveCoverageAST, file);});

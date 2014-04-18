@@ -51,7 +51,7 @@ exports.config = {
     'test/protractor/*.spec.js',
     '!**/exclude.spec.js'
   ],
-
+  exclude: ['test/protractor/exclude2.spec.js'],
   // ----- Capabilities to be passed to the webdriver instance ----
   //
   // For a full list of available capabilities, see
