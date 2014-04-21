@@ -1,6 +1,6 @@
 {
   "name": "grunt-protractor-coverage",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Instrument your code and gather coverage data from Protractor E2E tests",
   "main": "Gruntfile.js",
   "directories": {
