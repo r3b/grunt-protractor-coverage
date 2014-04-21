@@ -201,15 +201,11 @@ module.exports = function(grunt) {
               grunt.log.oklns("Test failed but keep the grunt process alive.");
               getCoverageData(function(payload){
                 try{
-                  var data=JSON.parse(payload);
-                  data.forEach(function(obj, i){
-                    var filename=path.normalize([coverageDir,'/',i, '.json'].join(''));
-                    fs.writeFileSync(filename, JSON.stringify(obj));
-                  });
+                  var filename=path.normalize([coverageDir,'/coverage.json'].join(''));
+                  fs.writeFileSync(filename, payload);
                 }catch(e){
                   grunt.log.error("Got error: " + e.message);
                 }
-
                 done();
                 done = null;
               });
@@ -221,11 +217,8 @@ module.exports = function(grunt) {
           } else {
               getCoverageData(function(payload){
                 try{
-                  // var data=JSON.parse(payload);
-                  // data.forEach(function(obj, i){
-                    var filename=path.normalize([coverageDir,'/coverage.json'].join(''));
-                    fs.writeFileSync(filename, payload);
-                  // });
+                  var filename=path.normalize([coverageDir,'/coverage.json'].join(''));
+                  fs.writeFileSync(filename, payload);
                 }catch(e){
                   grunt.log.error("Got error: " + e.message);
                 }
