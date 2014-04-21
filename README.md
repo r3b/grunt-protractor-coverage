@@ -1,4 +1,6 @@
 # grunt-protractor-coverage
+[![Build Status](https://travis-ci.org/r3b/grunt-protractor-coverage.svg?branch=master)](https://travis-ci.org/r3b/grunt-protractor-coverage)
+[![Coverage Status](https://coveralls.io/repos/r3b/grunt-protractor-coverage/badge.png)](https://coveralls.io/r/r3b/grunt-protractor-coverage)
 
 > Instrument your code and gather coverage data from Protractor E2E tests
 
