@@ -30,7 +30,17 @@ Array.prototype.unique = function() {
     return a;
 };
 module.exports = function(grunt) {
-  function instrumentSpecFile(payload, file){
+  function resolvePath(filename, paths){
+    var filepaths=paths.map(function(p){
+      try{
+        return require.resolve(path.resolve(p, filename));
+      }catch(e){
+        return null;
+      }
+    });
+    return filepaths.shift();
+  }
+  function instrumentSpecFile(payload, file, configDir){
     var code= grunt.file.read(file);
     var ast=esprima.parse(code);
     if(!ast){
@@ -38,30 +48,36 @@ module.exports = function(grunt) {
     }
     estraverse.traverse(ast, {
       enter: function (node, parent) {
-        if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='describe'){
-          node.arguments
-            .filter(function(n){return n.type==='FunctionExpression';})
-            .forEach(function(f){
-              f.body.body=payload.body.concat(f.body.body);
-            });
-        }
-      }
-    });
-    estraverse.traverse(ast, {
-      enter: function (node, parent) {
-        if(node.type==='CallExpression' && node.callee.type==='Identifier' && node.callee.name==='require'){
-          node.arguments=node.arguments
-            .map(function(f){
-              if(f.type==='Literal'){
-                if(/^\.\//.test(f.value)){
-                  if(!/\.js$/.test(f.value)){
-                    f.value=f.value+'.js';
+        if(node.type==='CallExpression' && node.callee.type==='Identifier'){
+          if(node.callee.name==='describe'){
+            node.arguments
+              .filter(function(n){return n.type==='FunctionExpression';})
+              .forEach(function(f){
+                f.body.body=payload.body.concat(f.body.body);
+              });
+            }else if(node.callee.name==='require'){
+              node.arguments=node.arguments
+                .map(function(f){
+                  if(f.type==='Literal'){
+                    if(/^\.\.?\//.test(f.value)){
+                      grunt.verbose.writeln("Spec file %s requires %s", file, f.value);
+                      var filepaths=[path.dirname(file), process.cwd()];
+                      if(configDir){
+                        filepaths.push(configDir);
+                      }
+                      var filepath=resolvePath(f.value, filepaths);
+                      if(!filepath){
+                        filepath=resolvePath(f.value);
+                      }
+                      grunt.verbose.writeln("Rewriting %s as %s", f.value, filepath);
+                      f.value=filepath;
+                    }
+
+                    f.value=f.value.replace(/^\.\//, path.dirname(file)+'/');
                   }
-                }
-                f.value=f.value.replace(/^\.\//, path.dirname(file)+'/');
-              }
-              return f;
-            });
+                  return f;
+                });
+            }
         }
       }
     });
@@ -162,8 +178,9 @@ module.exports = function(grunt) {
     // start the collector
     var collector=require('coverage-collector');
     collector(3001);
-
-    // Spawn protractor command
+    function cleanup(callback){
+      suppliedArgs.specs.forEach(function(f){grunt.file.delete(f, {force:true});});
+    }
     function getCoverageData(callback){
         http.get("http://localhost:3001/data", function(res) {
           var payload="";
@@ -173,17 +190,22 @@ module.exports = function(grunt) {
           });
           res.on('end', function(){
             http.get("http://localhost:3001/done", function(res) {
+              cleanup();
               if(callback){callback(payload);}
             })
             .on('error', function(e) {
+              cleanup();
               grunt.log.error("Got error: " + e.message);
               if(callback){callback(payload);}
             });
           });
         }).on('error', function(e) {
+          cleanup();
           grunt.log.error("Got error: " + e.message);
+          if(callback){callback();}
         });
       }
+    // Spawn protractor command
     var done = this.async();
     grunt.util.spawn({
         cmd: 'node',
@@ -227,7 +249,6 @@ module.exports = function(grunt) {
                 done = null;
               });
           }
-       // });
       }
     );
   });
