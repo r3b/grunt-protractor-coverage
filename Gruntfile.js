@@ -93,9 +93,11 @@ module.exports = function(grunt) {
       tests: ['test/*_test.js'],
     },
     coveralls: {
-      options: {
+      main:{
         src: 'reports/**/*.info',
-        force: true
+        options: {
+          force: true
+        },
       },
     },
 

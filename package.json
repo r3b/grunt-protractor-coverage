@@ -30,7 +30,7 @@
     "grunt-coveralls": "~0.3.0"
   },
   "scripts": {
-    "test": "grunt clean jshint test-remote"
+    "test": "grunt clean jshint test-remote -v"
   },
   "repository": {
     "type": "git",
