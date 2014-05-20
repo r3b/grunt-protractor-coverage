@@ -113,7 +113,7 @@ After the tests have been run and the coverage has been measured and captured yo
     }
 ```
 
-###$ Glue it all together!!
+### Glue it all together!!
 
 ```js
 grunt.initConfig({
