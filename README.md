@@ -7,9 +7,7 @@ This plugin requires Grunt `~0.4.4`
 
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
 
-The underlying code is borrowed heavily from [grunt-protractor-runner](https://github.com/teerapap/grunt-protractor-runner) and most options are still intact. 
-
-_Better documentation coming soon_
+The underlying code is borrowed heavily from [grunt-protractor-runner](https://github.com/teerapap/grunt-protractor-runner) and most options are still intact.
 
 ```shell
 npm install grunt-protractor-coverage --save-dev
@@ -36,53 +34,141 @@ grunt.initConfig({
       // Target-specific file lists and/or options go here.
     },
   },
-});
+})
 ```
-
-### Options
-
-#### options.separator
-Type: `String`
-Default value: `',  '`
-
-A string value that is used to do something with whatever.
-
-#### options.punctuation
-Type: `String`
-Default value: `'.'`
-
-A string value that is used to do something else with whatever else.
-
-### Usage Examples
 
 #### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
+In this example, the default options are used to do capture coverage of your protractor tests.
+
+Measuring coverage from protractor tests does not work out of the box. To measure coverage Protractor coverage, all
+sources need to be instrumented using istanbul.
 
 ```js
-grunt.initConfig({
-  protractor_coverage: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-});
+    instrument: {
+        files: 'src/**/*.js',
+        options: {
+        lazy: true,
+            basePath: "instrumented"
+        }
+    }
 ```
 
-#### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
+And the server running the code / app should use that instrumented code.
+
+```js
+    connect: {
+        options: {
+            port: 9000,
+            hostname: 'localhost'
+        },
+        runtime: {
+            options: {
+                middleware: function (connect) {
+                    return [
+                        lrSnippet,
+                        mountFolder(connect, 'instrumented'),
+                        mountFolder(connect, '.......')
+                    ];
+                }
+            }
+        }
+    }
+```
+
+Next to that your test should be run.
+
+```js
+    protractor_coverage: {
+        options: {
+            keepAlive: true,
+            noColor: false,
+            coverageDir: 'path/to/coverage/dir',
+            args: {
+                baseUrl: 'http://localhost:9000'
+            }
+        },
+        local: {
+            options: {
+                configFile: 'path/to/protractor-local.conf.js'
+            }
+        },
+        travis: {
+            options: {
+                configFile: 'path/to/protractor-travis.conf.js'
+            }
+        }
+    }
+```
+
+After the tests have been run and the coverage has been measured and captured you want to create a report.
+
+```js
+    makeReport: {
+        src: 'path/to/coverage/dir/*.json',
+        options: {
+            type: 'lcov',
+            dir: 'path/to/coverage/dir',
+            print: 'detail'
+        }
+    }
+```
+
+###$ Glue it all together!!
 
 ```js
 grunt.initConfig({
-  protractor_coverage: {
-    options: {
-      separator: ': ',
-      punctuation: ' !!!',
+    connect: {
+        options: {
+            port: 9000,
+            hostname: 'localhost'
+        },
+        runtime: {
+            options: {
+                middleware: function (connect) {
+                    return [
+                        lrSnippet,
+                        mountFolder(connect, 'instrumented'),
+                        mountFolder(connect, '.......')
+                    ];
+                }
+            }
+        }
     },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
+    instrument: {
+        files: 'src/**/*.js',
+        options: {
+        lazy: true,
+            basePath: "instrumented"
+        }
     },
-  },
+    protractor_coverage: {
+        options: {
+            keepAlive: true,
+            noColor: false,
+            coverageDir: 'path/to/coverage/dir',
+            args: {
+                baseUrl: 'http://localhost:9000'
+            }
+        },
+        local: {
+            options: {
+                configFile: 'path/to/protractor-local.conf.js'
+            }
+        },
+        travis: {
+            options: {
+                configFile: 'path/to/protractor-travis.conf.js'
+            }
+        }
+    },
+    makeReport: {
+        src: 'path/to/coverage/dir/*.json',
+        options: {
+            type: 'lcov',
+            dir: 'path/to/coverage/dir',
+            print: 'detail'
+        }
+    }
 });
 ```
 
