@@ -1,5 +1,6 @@
 'use strict';
-require('./../protractor_coverage_test.js');
+require('./../protractor_coverage_test');
+require('coverage-collector');
 describe('Ensure that the plugin works', function() {
 	it('should not really do much.', function() {
 		browser.sleep(3000);

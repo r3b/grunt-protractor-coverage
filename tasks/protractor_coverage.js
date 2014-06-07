@@ -56,27 +56,29 @@ module.exports = function(grunt) {
                 f.body.body=payload.body.concat(f.body.body);
               });
             }else if(node.callee.name==='require'){
-              node.arguments=node.arguments
-                .map(function(f){
-                  if(f.type==='Literal'){
-                    if(/^\.\.?\//.test(f.value)){
-                      grunt.verbose.writeln("Spec file %s requires %s", file, f.value);
-                      var filepaths=[path.dirname(file), process.cwd()];
-                      if(configDir){
-                        filepaths.push(configDir);
+              if(node.arguments){
+                node.arguments=node.arguments
+                  .map(function(f){
+                    if(f.type==='Literal'){
+                      if(/^\.\.?\//.test(f.value)){
+                        grunt.verbose.writeln("Spec file %s requires %s", file, f.value);
+                        var filepaths=[path.dirname(file), process.cwd()];
+                        if(configDir){
+                          filepaths.push(configDir);
+                        }
+                        var filepath=resolvePath(f.value, filepaths);
+                        if(filepath){
+                          grunt.verbose.writeln("Rewriting %s as %s", f.value, filepath);
+                          f.value=filepath;
+                        }else{
+                          grunt.warn("Unable to rewrite "+ f.value);
+                        }
                       }
-                      var filepath=resolvePath(f.value, filepaths);
-                      if(!filepath){
-                        filepath=resolvePath(f.value);
-                      }
-                      grunt.verbose.writeln("Rewriting %s as %s", f.value, filepath);
-                      f.value=filepath;
+                      // f.value=f.value.replace(/^\.\//, path.dirname(file)+'/');
                     }
-
-                    f.value=f.value.replace(/^\.\//, path.dirname(file)+'/');
-                  }
-                  return f;
-                });
+                    return f;
+                  });
+              }
             }
         }
       }
@@ -207,6 +209,7 @@ module.exports = function(grunt) {
       }
     // Spawn protractor command
     var done = this.async();
+    process.env["NODE_PATH"]=[process.env["NODE_PATH"],process.cwd()+'/node_modules'].join(':');
     grunt.util.spawn({
         cmd: 'node',
         args: args,
