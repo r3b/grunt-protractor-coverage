@@ -27,14 +27,14 @@ module.exports = function(grunt) {
     clean: {
       tests: ['tmp', 'build', 'instrumented', 'coverage', 'reports'],
     },
-    connect: {
-      server: {
-        options: {
-          port: 3000,
-          base: 'instrumented/resources/app/angularjs'
-        }
-      },
-    },
+    // connect: {
+    //   server: {
+    //     options: {
+    //       port: 3000,
+    //       base: 'instrumented/resources/app/angularjs'
+    //     }
+    //   },
+    // },
     // Configuration to be run (and then tested).
     protractor_coverage: {
       options: {
@@ -42,6 +42,10 @@ module.exports = function(grunt) {
         keepAlive: true, // If false, the grunt process stops when the test fails.
         noColor: false, // If true, protractor will not use colors in its output.
         coverageDir: 'coverage',
+        server:{
+          port:3000,
+          path:'instrumented/angularjs',
+        },
         args: {}
       },
       local: {
@@ -72,11 +76,19 @@ module.exports = function(grunt) {
         }]
       },
     },
-    instrument: {
-      files: 'resources/app/**/*.js',
+    // instrument: {
+    //   files: 'resources/app/**/*.js',
+    //   options: {
+    //     lazy: true,
+    //     basePath: "instrumented"
+    //   }
+    // },
+    instrument_app: {
       options: {
         lazy: true,
-        basePath: "instrumented"
+      },
+      test_app:{
+        files: [{src:'resources/app',dest:'instrumented'}]
       }
     },
     coverage_report: {
@@ -84,13 +96,14 @@ module.exports = function(grunt) {
         options: {
           type: 'lcov',
           dir: 'reports',
-          print: 'detail'
+          print: 'detail',
+          base: "instrumented"
         },
         files: [{src:'coverage/**/*.json'}]
       },
       summary:{
         options: {
-          type: 'text-summary',
+          type: 'text',
         },
         files: [{src:'coverage/**/*.json'}]
       },
@@ -119,14 +132,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-nodeunit');
   grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-istanbul');
+  // grunt.loadNpmTasks('grunt-contrib-connect');
+  // grunt.loadNpmTasks('grunt-istanbul');
   grunt.loadNpmTasks('grunt-coveralls');
 
   // Whenever the "test" task is run, first clean the "tmp" dir, then run this
   // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:local', 'coverage_report', 'coveralls']);
-  grunt.registerTask('test-remote', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:remote', 'coverage_report', 'coveralls']);
+  grunt.registerTask('test', ['clean', 'copy', 'instrument_app', 'protractor_coverage:local', 'coverage_report']);
+  grunt.registerTask('test-remote', ['clean', 'copy', 'instrument_app', 'protractor_coverage:remote', 'coverage_report']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);
