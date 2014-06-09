@@ -25,7 +25,9 @@
     "estraverse": "~1.5.0",
     "escodegen": "~1.3.0",
     "coverage-collector": "0.0.4",
-    "grunt-coveralls": "~0.3.0"
+    "grunt-coveralls": "~0.3.0",
+    "istanbul": "~0.2.10",
+    "connect": "~2.19.5"
   },
   "scripts": {
     "test": "grunt clean jshint test-remote -v"
