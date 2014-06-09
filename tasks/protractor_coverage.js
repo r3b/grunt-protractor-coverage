@@ -96,10 +96,10 @@ module.exports = function(grunt) {
   function startServer(options){
       var serverPort=options.server.port||3000;
       var serverPath=options.server.path||"instrumented";
-      if(serverApp)return;
+      if(serverApp){return;}
       grunt.log.ok("Starting web server on port "+serverPort);
-      var app = connect()
-      
+      var app = connect();
+
         app.use(connect.logger('dev'));
         app.use(connect.static(serverPath));
         app.use(function(req, res) {
@@ -109,7 +109,7 @@ module.exports = function(grunt) {
         try{
           serverApp=http.createServer(app).listen(serverPort);
         }catch(e){
-          grunt.fail.fatal("Could not start web server", e.message)
+          grunt.fail.fatal("Could not start web server", e.message);
         }
       grunt.log.ok();
 
@@ -120,66 +120,10 @@ module.exports = function(grunt) {
       serverApp.close();
     }
   }
-  function instrument_app(){
-    var opts = this.options({
-      dest: "instrumented",
-      copyResources:true
-    });
-    this.files.forEach(function(filespec) {
-      filespec.src.forEach(function (filepath){
-        var fullpath=path.resolve(filepath),
-          dest=filespec.dest||opts.dest,
-          instrumenter = new istanbul.Instrumenter(opts),
-          instrumented=0,
-          copied=0;
-        if (!grunt.file.exists(fullpath)) {
-          grunt.fail.warn(fullpath + " does not exist. Please specify the base directory for your application.");
-        }
-        if(!grunt.file.isDir(fullpath)){
-          grunt.fail.warn(fullpath+" is not a directory. Please specify the base directory for your application.");
-        }
-        grunt.verbose.writeln("Instrumenting app at " + filepath);
-        var js_files=grunt.file.expand({cwd:fullpath}, ["**/*.js", "!**/*.min.js", "!**/bower_components/**/*", "!**/node_modules/**/*"]),
-          other_files=grunt.file.expand({cwd:fullpath}, ["**/*", "!**/*.js", "**/*.min.js", "**/bower_components/**/*", "**/node_modules/**/*"])
-        js_files.forEach(function(file){
-          var fullfilepath=path.resolve(fullpath, file),
-            fullinstrumentedfilepath=path.resolve(dest, file);
-          grunt.file.copy(fullfilepath, fullinstrumentedfilepath, {process:function(code, filepath){
-            // return instrumenter.instrumentSync( code, filepath.replace(fullpath, '') );
-            return instrumenter.instrumentSync( code, filepath );
-          }});
-          instrumented++;
-        });
-        if(opts.copyResources){
-          other_files.forEach(function(file){
-            var fullfilepath=path.resolve(fullpath, file),
-              fullinstrumentedfilepath=path.resolve(dest, file);
-            if(grunt.file.isFile(fullfilepath)){
-              grunt.file.copy(fullfilepath, fullinstrumentedfilepath);
-              copied++;
-            }
-          });
-        }
-        grunt.log.ok("Intrumented "+instrumented+" files and copied "+copied+" files to "+dest);
-      });
-    });
-  }
-  function coverage_report(){
-    var sync=true,
-      opts = this.options({
-        dir: "report",
-        base: ""
-      }),
-      collector = new istanbul.Collector(),
-      report = istanbul.Report.create(opts.type, opts);
-    grunt.verbose.writeln("Creating coverage report for " + this.target);
-    this.filesSrc.forEach(function(file){
-      grunt.verbose.writeln("Adding coverage file "+file);
-      collector.add(grunt.file.readJSON(file));
-    });
-    report.writeReport(collector, sync);
-  }
-  function protractor_coverage() {
+  
+  
+  
+  grunt.registerMultiTask('protractor_coverage', 'Instrument your code and gather coverage data from Protractor E2E tests', function protractor_coverage() {
     // '.../node_modules/protractor/lib/protractor.js'
     var protractorMainPath = require.resolve('protractor');
     // '.../node_modules/protractor/bin/protractor'
@@ -355,10 +299,68 @@ module.exports = function(grunt) {
           }
       }
     );
-  }
-  grunt.registerMultiTask('protractor_coverage', 'Instrument your code and gather coverage data from Protractor E2E tests', protractor_coverage);
-  grunt.registerMultiTask('coverage_report', 'Create reports from one or more sets of coverage data', coverage_report);
-  grunt.registerMultiTask('instrument_app', 'Instrument all JS files in an application and copy other files', instrument_app);
+  });
+  grunt.registerMultiTask('coverage_report', 'Create reports from one or more sets of coverage data', function coverage_report(){
+    var self=this,
+      sync=true,
+      opts = this.options({
+        dir: "report",
+        base: ""
+      }),
+      collector = new istanbul.Collector(),
+      report = istanbul.Report.create(opts.type, opts);
+    grunt.verbose.writeln("Creating coverage report for " + this.target);
+    self.filesSrc.forEach(function(file){
+      grunt.verbose.writeln("Adding coverage file "+file);
+      collector.add(grunt.file.readJSON(file));
+    });
+    report.writeReport(collector, sync);
+  });
+  grunt.registerMultiTask('instrument_app', 'Instrument all JS files in an application and copy other files', function instrument_app(){
+    var self=this,
+      opts = this.options({
+        dest: "instrumented",
+        copyResources:true
+      });
+    self.files.forEach(function(filespec) {
+      filespec.src.forEach(function (filepath){
+        var fullpath=path.resolve(filepath),
+          dest=filespec.dest||opts.dest,
+          instrumenter = new istanbul.Instrumenter(opts),
+          instrumented=0,
+          copied=0;
+        if (!grunt.file.exists(fullpath)) {
+          grunt.fail.warn(fullpath + " does not exist. Please specify the base directory for your application.");
+        }
+        if(!grunt.file.isDir(fullpath)){
+          grunt.fail.warn(fullpath+" is not a directory. Please specify the base directory for your application.");
+        }
+        grunt.verbose.writeln("Instrumenting app at " + filepath);
+        var js_files=grunt.file.expand({cwd:fullpath}, ["**/*.js", "!**/*.min.js", "!**/bower_components/**/*", "!**/node_modules/**/*"]),
+          other_files=grunt.file.expand({cwd:fullpath}, ["**/*", "!**/*.js", "**/*.min.js", "**/bower_components/**/*", "**/node_modules/**/*"]);
+        js_files.forEach(function(file){
+          var fullfilepath=path.resolve(fullpath, file),
+            fullinstrumentedfilepath=path.resolve(dest, file);
+          grunt.file.copy(fullfilepath, fullinstrumentedfilepath, {process:function(code, filepath){
+            // return instrumenter.instrumentSync( code, filepath.replace(fullpath, '') );
+            return instrumenter.instrumentSync( code, filepath );
+          }});
+          instrumented++;
+        });
+        if(opts.copyResources){
+          other_files.forEach(function(file){
+            var fullfilepath=path.resolve(fullpath, file),
+              fullinstrumentedfilepath=path.resolve(dest, file);
+            if(grunt.file.isFile(fullfilepath)){
+              grunt.file.copy(fullfilepath, fullinstrumentedfilepath);
+              copied++;
+            }
+          });
+        }
+        grunt.log.ok("Intrumented "+instrumented+" files and copied "+copied+" files to "+dest);
+      });
+    });
+  });
   
 };
  
