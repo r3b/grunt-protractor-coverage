@@ -79,13 +79,21 @@ module.exports = function(grunt) {
         basePath: "instrumented"
       }
     },
-    makeReport: {
-      src: 'coverage/**/*.json',
-      options: {
-        type: 'lcov',
-        dir: 'reports',
-        print: 'detail'
-      }
+    coverage_report: {
+      full:{
+        options: {
+          type: 'lcov',
+          dir: 'reports',
+          print: 'detail'
+        },
+        files: [{src:'coverage/**/*.json'}]
+      },
+      summary:{
+        options: {
+          type: 'text-summary',
+        },
+        files: [{src:'coverage/**/*.json'}]
+      },
     },
 
     // Unit tests.
@@ -117,8 +125,8 @@ module.exports = function(grunt) {
 
   // Whenever the "test" task is run, first clean the "tmp" dir, then run this
   // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:local', 'makeReport', 'coveralls']);
-  grunt.registerTask('test-remote', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:remote', 'makeReport', 'coveralls']);
+  grunt.registerTask('test', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:local', 'coverage_report', 'coveralls']);
+  grunt.registerTask('test-remote', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:remote', 'coverage_report', 'coveralls']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);

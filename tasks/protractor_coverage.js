@@ -17,6 +17,7 @@ var tmp = require('temporary');
 var esprima=require('esprima');
 var estraverse=require('estraverse');
 var escodegen=require('escodegen');
+var istanbul=require("istanbul");  
 Array.prototype.unique = function() {
     var a = [], l = this.length;
     for(var i=0; i<l; i++) {
@@ -88,8 +89,9 @@ module.exports = function(grunt) {
     grunt.file.write(newSpecFile, escodegen.generate(ast));
     return newSpecFile;
   }
-
-  grunt.registerMultiTask('protractor_coverage', 'Instrument your code and gather coverage data from Protractor E2E tests', function() {
+  
+  
+  grunt.registerMultiTask('protractor_coverage', 'Instrument your code and gather coverage data from Protractor E2E tests', function protractor_coverage() {
     // '.../node_modules/protractor/lib/protractor.js'
     var protractorMainPath = require.resolve('protractor');
     // '.../node_modules/protractor/bin/protractor'
@@ -254,5 +256,20 @@ module.exports = function(grunt) {
           }
       }
     );
+  });
+  
+  grunt.registerMultiTask('coverage_report', 'Create reports from one or more sets of coverage data', function coverage_report(){
+    var self=this;
+    grunt.verbose.writeln("Creating coverage report for " + self.target);
+    var opts = self.options({
+      dir: "report",
+    });
+    var collector = new istanbul.Collector();
+    var report = istanbul.Report.create(opts.type, opts);
+    self.filesSrc.forEach(function(file){
+      grunt.verbose.writeln("Adding coverage file "+file);
+      collector.add(JSON.parse(grunt.file.read(file)));
+    });
+    report.writeReport(collector, true);
   });
 };
