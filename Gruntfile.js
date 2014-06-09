@@ -7,7 +7,6 @@
  */
 
 'use strict';
-var tmp = require('tmp');
 module.exports = function(grunt) {
 
   // Project configuration.
