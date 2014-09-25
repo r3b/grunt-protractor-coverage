@@ -218,7 +218,7 @@ module.exports = function(grunt) {
         
           if (error) {
             grunt.log.error(String(result));
-            if (code === 1 && keepAlive) {
+            if (code === 1 || code === 100 && keepAlive) {
               // Test fails but do not want to stop the grunt process.
               grunt.log.oklns("Test failed but keep the grunt process alive.");
               getCoverageData(function(payload){
