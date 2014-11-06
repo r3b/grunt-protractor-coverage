@@ -115,6 +115,7 @@ module.exports = function(grunt) {
     var saveCoverageContent=grunt.template.process( saveCoverageSource, {
       data: {
         dirname: coverageDir,
+        collectorPort: opts.collectorPort,
         coverage: '__coverage__'
       }
     });
