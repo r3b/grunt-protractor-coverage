@@ -209,7 +209,7 @@ module.exports = function(grunt) {
       }
     // Spawn protractor command
     var done = this.async();
-    process.env["NODE_PATH"]=[process.env["NODE_PATH"],process.cwd()+'/node_modules'].join(':');
+    process.env["NODE_PATH"]=[process.env["NODE_PATH"],process.cwd()+'/node_modules'].join(path.delimiter);
     grunt.util.spawn({
         cmd: 'node',
         args: args,
