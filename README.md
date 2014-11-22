@@ -84,6 +84,7 @@ Next to that your test should be run.
         options: {
             keepAlive: true,
             noColor: false,
+            collectorPort: 3001,
             coverageDir: 'path/to/coverage/dir',
             args: {
                 baseUrl: 'http://localhost:9000'

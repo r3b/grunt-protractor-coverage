@@ -2,7 +2,7 @@ var fs=fs||require("fs");
 var http=http||require("http");
 var options = {
   hostname: 'localhost',
-  port: 3001,
+  port: <%=collectorPort%>,
   path: '/data',
   method: 'POST',
   headers:{

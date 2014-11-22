@@ -102,6 +102,7 @@ module.exports = function(grunt) {
       keepAlive: true,
       noColor: false,
       debug: false,
+      collectorPort: 3001,
       args: {}
     });
     var saveCoverageTemplate = grunt.file.expand(["resources/saveCoverage.tmpl", "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
@@ -114,6 +115,7 @@ module.exports = function(grunt) {
     var saveCoverageContent=grunt.template.process( saveCoverageSource, {
       data: {
         dirname: coverageDir,
+        collectorPort: opts.collectorPort,
         coverage: '__coverage__'
       }
     });
@@ -179,19 +181,19 @@ module.exports = function(grunt) {
     grunt.verbose.writeln("Spawn node with arguments: " + args);
     // start the collector
     var collector=require('coverage-collector');
-    collector(3001);
+    collector({port: opts.collectorPort});
     function cleanup(callback){
       suppliedArgs.specs.forEach(function(f){grunt.file.delete(f, {force:true});});
     }
     function getCoverageData(callback){
-        http.get("http://localhost:3001/data", function(res) {
+        http.get("http://localhost:" + opts.collectorPort + "/data", function(res) {
           var payload="";
           res.on('data', function (chunk) {
             payload+=chunk;
             // grunt.log.warn('BODY: ' + chunk);
           });
           res.on('end', function(){
-            http.get("http://localhost:3001/done", function(res) {
+            http.get("http://localhost:" + opts.collectorPort + "/done", function(res) {
               cleanup();
               if(callback){callback(payload);}
             })
@@ -209,7 +211,7 @@ module.exports = function(grunt) {
       }
     // Spawn protractor command
     var done = this.async();
-    process.env["NODE_PATH"]=[process.env["NODE_PATH"],process.cwd()+'/node_modules'].join(':');
+    process.env["NODE_PATH"]=[process.env["NODE_PATH"],process.cwd()+'/node_modules'].join(path.delimiter);
     grunt.util.spawn({
         cmd: 'node',
         args: args,
