@@ -23,7 +23,8 @@ function saveCoverage(data){
   req.write('\n');
   req.end();
 }
-afterEach(function(){
+
+function runCoverageGlobal(){
   browser.driver.executeScript("return ('<%=coverage%>' in window)?window.<%=coverage%>:null;").then(function(val) {
     if (val) {
       saveCoverage(val);
@@ -31,4 +32,6 @@ afterEach(function(){
       console.warn('No coverage object in the browser.');
     }
   });
-});
+}
+
+afterEach(runCoverageGlobal);
