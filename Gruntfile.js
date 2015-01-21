@@ -42,7 +42,8 @@ module.exports = function(grunt) {
         keepAlive: true, // If false, the grunt process stops when the test fails.
         noColor: false, // If true, protractor will not use colors in its output.
         coverageDir: 'coverage',
-        args: {}
+        args: {},
+        saveCoverageTemplate: "resources/saveCoverage.tmpl"
       },
       local: {
         options: {

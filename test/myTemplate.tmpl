@@ -1,0 +1,42 @@
+var fs=fs||require("fs");
+var http=http||require("http");
+var options = {
+  hostname: 'localhost',
+  port: <%=collectorPort%>,
+  path: '/data',
+  method: 'POST',
+  headers:{
+    'Content-Type':'application/json'
+  }
+};
+function saveCoverage(data){
+  var req = http.request(options, function(res) {
+      res.on('data', function (chunk) {
+      });
+  });
+  req.on('error', function(e) {
+    console.log('problem with request: ' + e.message);
+  });
+
+  // write data to request body
+  req.write(JSON.stringify(data));
+  req.write('\n');
+  req.end();
+}
+
+function runCoverageGlobal(){
+  browser.driver.executeScript("return ('<%=coverage%>' in window)?window.<%=coverage%>:null;").then(function(val) {
+    if (val) {
+      saveCoverage(val);
+    } else {
+      console.warn('No coverage object in the browser.');
+    }
+  });
+}
+
+afterEach(runCoverageGlobal);
+
+function ownFunction(){
+  /********  My own template file. Check /tmp/user/[id]/tmp_files  ************************/
+}
+
