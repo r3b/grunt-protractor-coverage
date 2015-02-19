@@ -17,18 +17,6 @@ var tmp = require('temporary');
 var esprima=require('esprima');
 var estraverse=require('estraverse');
 var escodegen=require('escodegen');
-Array.prototype.unique = function() {
-    var a = [], l = this.length;
-    for(var i=0; i<l; i++) {
-      for(var j=i+1; j<l; j++){
-        if (this[i] === this[j]){
-          j = ++i;
-        }
-      }
-      a.push(this[i]);
-    }
-    return a;
-};
 module.exports = function(grunt) {
   function resolvePath(filename, paths){
     var filepaths=paths.map(function(p){
