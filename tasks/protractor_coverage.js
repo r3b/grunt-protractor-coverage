@@ -87,7 +87,7 @@ module.exports = function(grunt) {
     // Merge task-specific and/or target-specific options with these defaults.
     var opts = this.options({
       configFile: (!grunt.util._.isUndefined(this.data.configFile)) ? this.data.configFile : protractorRefConfPath,
-      keepAlive: true,
+      keepAlive: (!grunt.util._.isUndefined(this.data.keepAlive)) ? this.data.keepAlive : protractorRefConfPath,
       noColor: false,
       debug: false,
       collectorPort: 3001,
@@ -121,7 +121,7 @@ module.exports = function(grunt) {
       //boolean
       "includeStackTrace", "verbose",
       //object
-      "params", "capabilities", "cucumberOpts"
+      "params", "capabilities", "cucumberOpts","keepAlive"
     ];
     var args = [protractorBinPath, opts.configFile];
     if (opts.noColor) {
