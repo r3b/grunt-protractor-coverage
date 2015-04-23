@@ -91,9 +91,10 @@ module.exports = function(grunt) {
       noColor: false,
       debug: false,
       collectorPort: 3001,
-      args: {}
-    });
-    var saveCoverageTemplate = grunt.file.expand(["resources/saveCoverage.tmpl", "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
+      args: {},
+      saveCoverageTemplate: "resources/saveCoverage.tmpl"
+    });    
+    var saveCoverageTemplate = grunt.file.expand([ opts.saveCoverageTemplate, "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
     if(!saveCoverageTemplate){
       grunt.fail.fatal("Coverage template file not found.");
     }
