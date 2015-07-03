@@ -49,7 +49,7 @@ sources need to be instrumented using istanbul.
     instrument: {
         files: 'src/**/*.js',
         options: {
-        lazy: true,
+            lazy: true,
             basePath: "instrumented"
         }
     }
@@ -173,6 +173,39 @@ grunt.initConfig({
         }
     }
 });
+```
+
+### Cucumber tests
+grunt-protractor-coverage normally injects code used for obtaining coverage information by generating altered versions of spec files, but Cucumber features are written in Gherkin rather than JavaScript so this will fail. You can prevent this from happening using the noInject option:
+
+```js
+    protractor_coverage: {
+        options: {
+            keepAlive: true,
+            noInject: true,
+            coverageDir: 'path/to/coverage/dir',
+            args: {
+                baseUrl: 'http://localhost:9000'
+            }
+        },
+        local: {
+            options: {
+                configFile: 'path/to/protractor-local.conf.js'
+            }
+        }
+    }
+```
+
+Once enabled you'll also need to update your step definitions to store coverage data after each scenario runs: 
+
+```js
+var coverage = require('grunt-protractor-coverage/cucumber');
+
+module.exports = function () {
+    // Step definitions go here
+    
+    this.After(coverage.getCoverage);
+};
 ```
 
 ## Contributing
