@@ -89,26 +89,30 @@ module.exports = function(grunt) {
       configFile: (!grunt.util._.isUndefined(this.data.configFile)) ? this.data.configFile : protractorRefConfPath,
       keepAlive: (!grunt.util._.isUndefined(this.data.keepAlive)) ? this.data.keepAlive : protractorRefConfPath,
       noColor: false,
+      noInject: false,
       debug: false,
       collectorPort: 3001,
       args: {},
       saveCoverageTemplate: "resources/saveCoverage.tmpl"
-    });    
-    var saveCoverageTemplate = grunt.file.expand([ opts.saveCoverageTemplate, "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
-    if(!saveCoverageTemplate){
-      grunt.fail.fatal("Coverage template file not found.");
-    }
+    });
     var coverageDir = path.resolve(opts.coverageDir||'coverage/');
     coverageDir = coverageDir.replace(/\\/g,'/');
-    var saveCoverageSource = grunt.file.read(saveCoverageTemplate);
-    var saveCoverageContent=grunt.template.process( saveCoverageSource, {
-      data: {
-        dirname: coverageDir,
-        collectorPort: opts.collectorPort,
-        coverage: '__coverage__'
+    var noInject = opts.noInject;
+    if (!noInject) {
+      var saveCoverageTemplate = grunt.file.expand([ opts.saveCoverageTemplate, "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
+      if(!saveCoverageTemplate){
+        grunt.fail.fatal("Coverage template file not found.");
       }
-    });
-    var saveCoverageAST=esprima.parse(saveCoverageContent);
+      var saveCoverageSource = grunt.file.read(saveCoverageTemplate);
+      var saveCoverageContent=grunt.template.process( saveCoverageSource, {
+        data: {
+          dirname: coverageDir,
+          collectorPort: opts.collectorPort,
+          coverage: '__coverage__'
+        }
+      });
+      var saveCoverageAST=esprima.parse(saveCoverageContent);
+    }
     grunt.verbose.writeln("Options: " + util.inspect(opts));
 
     var keepAlive = opts['keepAlive'];
@@ -153,8 +157,12 @@ module.exports = function(grunt) {
     grunt.verbose.writeln("Exclusions:", excludes);
     var files = grunt.file.expand(specs).filter(function(file){return excludes.indexOf(file)===-1;});
     grunt.verbose.writeln("Expanded specs:", files);
-    //for each spec file, wrap each method call with a closure to save the coverage object
-    suppliedArgs.specs=files.map(function(file){return instrumentSpecFile(saveCoverageAST, file);});
+    if (!noInject) {
+      //for each spec file, wrap each method call with a closure to save the coverage object
+      suppliedArgs.specs=files.map(function(file){return instrumentSpecFile(saveCoverageAST, file);});
+    } else {
+      suppliedArgs.specs=files;
+    }
 
     args = args
       .concat(dargs(suppliedArgs, {
@@ -172,7 +180,9 @@ module.exports = function(grunt) {
     var collector=require('coverage-collector');
     collector({port: opts.collectorPort});
     function cleanup(callback){
-      suppliedArgs.specs.forEach(function(f){grunt.file.delete(f, {force:true});});
+      if (!noInject) {
+        suppliedArgs.specs.forEach(function(f){grunt.file.delete(f, {force:true});});
+      }
     }
     function getCoverageData(callback){
         http.get("http://localhost:" + opts.collectorPort + "/data", function(res) {

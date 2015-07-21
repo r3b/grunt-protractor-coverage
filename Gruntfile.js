@@ -64,6 +64,12 @@ module.exports = function(grunt) {
           }
         }
       },
+      cucumber: {
+        options: {
+          configFile: "test/cucumber.conf.js",
+          noInject: true
+        }
+      }
     },
     copy: {
       'instrument': {
@@ -120,6 +126,7 @@ module.exports = function(grunt) {
   // plugin's task(s), then test the result.
   grunt.registerTask('test', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:local', 'makeReport', 'coveralls']);
   grunt.registerTask('test-remote', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:remote', 'makeReport', 'coveralls']);
+  grunt.registerTask('test-cucumber', ['clean', 'copy', 'instrument', 'connect:server', 'protractor_coverage:cucumber', 'makeReport', 'coveralls']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);
