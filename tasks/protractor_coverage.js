@@ -232,27 +232,23 @@ module.exports = function(grunt) {
                 }catch(e){
                   grunt.log.error("Got error: " + e.message);
                 }
-                done();
-                done = null;
               });
             } else {
               // Test fails and want to stop the grunt process,
               // or protractor exited with other reason.
-              grunt.fail.fatal('protractor exited with code: ' + code, 3);
+              grunt.warn('Tests failed, protractor exited with code: ' + code, code);
             }
-          } else {
-              getCoverageData(function(payload){
-                try{
-                  var filename=path.normalize([coverageDir,'/coverage.json'].join(''));
-                  fs.writeFileSync(filename, payload);
-                }catch(e){
-                  grunt.log.error("Got error: " + e.message);
-                }
-
-                done();
-                done = null;
-              });
           }
+          getCoverageData(function(payload){
+            try{
+              var filename=path.normalize([coverageDir,'/coverage.json'].join(''));
+              fs.writeFileSync(filename, payload);
+            }catch(e){
+              grunt.log.error("Got error: " + e.message);
+            }
+          });
+          done();
+          done = null;
       }
     );
   });
