@@ -46,7 +46,7 @@
     "istanbul"
   ],
   "author": "ryan bridges",
-  "license": "APLv2",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/r3b/grunt-protractor-coverage/issues"
   }
