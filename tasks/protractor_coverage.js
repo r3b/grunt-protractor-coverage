@@ -95,6 +95,10 @@ module.exports = function(grunt) {
       args: {},
       saveCoverageTemplate: "resources/saveCoverage.tmpl"
     });
+    var saveCoverageTemplate = grunt.file.expand([ opts.saveCoverageTemplate, "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", path.join(__dirname, '..') + '/**/resources/saveCoverage.tmpl']).shift();
+    if(!saveCoverageTemplate){
+      grunt.fail.fatal("Coverage template file not found.");
+    }
     var coverageDir = path.resolve(opts.coverageDir||'coverage/');
     coverageDir = coverageDir.replace(/\\/g,'/');
     var noInject = opts.noInject;
@@ -219,7 +223,7 @@ module.exports = function(grunt) {
         }
       },
       function(error, result, code) {
-        
+
           if (error) {
             grunt.log.error(String(result));
             if ((code === 1 || code === 100) && keepAlive) {
