@@ -87,7 +87,7 @@ module.exports = function(grunt) {
     // Merge task-specific and/or target-specific options with these defaults.
     var opts = this.options({
       configFile: (!grunt.util._.isUndefined(this.data.configFile)) ? this.data.configFile : protractorRefConfPath,
-      keepAlive: (!grunt.util._.isUndefined(this.data.keepAlive)) ? this.data.keepAlive : protractorRefConfPath,
+      keepAlive: (!grunt.util._.isUndefined(this.data.keepAlive)) ? this.data.keepAlive : true,
       noColor: false,
       noInject: false,
       debug: false,
