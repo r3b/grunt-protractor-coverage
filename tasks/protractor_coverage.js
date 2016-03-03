@@ -103,11 +103,11 @@ module.exports = function(grunt) {
     coverageDir = coverageDir.replace(/\\/g,'/');
     var noInject = opts.noInject;
     if (!noInject) {
-      var saveCucumberCoverageTemplate = grunt.file.expand([ opts.saveCoverageTemplate, "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
-      if(!saveCucumberCoverageTemplate){
+      saveCoverageTemplate = grunt.file.expand([ opts.saveCoverageTemplate, "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
+      if(!saveCoverageTemplate){
         grunt.fail.fatal("Coverage template file not found.");
       }
-      var saveCoverageSource = grunt.file.read(saveCucumberCoverageTemplate);
+      var saveCoverageSource = grunt.file.read(saveCoverageTemplate);
       var saveCoverageContent=grunt.template.process( saveCoverageSource, {
         data: {
           dirname: coverageDir,
