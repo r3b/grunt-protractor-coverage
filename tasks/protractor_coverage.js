@@ -241,10 +241,11 @@ module.exports = function(grunt) {
               fs.writeFileSync(filename, payload);
             }catch(e){
               grunt.log.error("Got error: " + e.message);
+            } finally {
+              done();
+              done = null;
             }
           });
-          done();
-          done = null;
       }
     );
   });
