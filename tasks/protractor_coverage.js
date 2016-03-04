@@ -103,7 +103,7 @@ module.exports = function(grunt) {
     coverageDir = coverageDir.replace(/\\/g,'/');
     var noInject = opts.noInject;
     if (!noInject) {
-      var saveCoverageTemplate = grunt.file.expand([ opts.saveCoverageTemplate, "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
+      saveCoverageTemplate = grunt.file.expand([ opts.saveCoverageTemplate, "node_modules/grunt-protractor-coverage/resources/saveCoverage.tmpl", process.cwd()+'/**/resources/saveCoverage.tmpl']).shift();
       if(!saveCoverageTemplate){
         grunt.fail.fatal("Coverage template file not found.");
       }
@@ -229,14 +229,6 @@ module.exports = function(grunt) {
             if ((code === 1 || code === 100) && keepAlive) {
               // Test fails but do not want to stop the grunt process.
               grunt.log.oklns("Test failed but keep the grunt process alive.");
-              getCoverageData(function(payload){
-                try{
-                  var filename=path.normalize([coverageDir,'/coverage.json'].join(''));
-                  fs.writeFileSync(filename, payload);
-                }catch(e){
-                  grunt.log.error("Got error: " + e.message);
-                }
-              });
             } else {
               // Test fails and want to stop the grunt process,
               // or protractor exited with other reason.
@@ -249,10 +241,11 @@ module.exports = function(grunt) {
               fs.writeFileSync(filename, payload);
             }catch(e){
               grunt.log.error("Got error: " + e.message);
+            } finally {
+              done();
+              done = null;
             }
           });
-          done();
-          done = null;
       }
     );
   });
