@@ -148,9 +148,7 @@ module.exports = function(grunt) {
       return args;
     }, {});
     
-    var coverageFilename=suppliedArgs['coverageFilename']
-        ? suppliedArgs['coverageFilename'].replace(".json", "")
-        : 'coverage';
+    var coverageFilename=suppliedArgs['coverageFilename'] ? suppliedArgs['coverageFilename'].replace(".json", "") : 'coverage';
     var configDir=path.dirname(path.resolve(opts.configFile));
     grunt.file.mkdir(coverageDir);
 
