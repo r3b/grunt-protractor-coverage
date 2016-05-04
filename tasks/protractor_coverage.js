@@ -124,7 +124,7 @@ module.exports = function(grunt) {
       //string
       "seleniumAddress", "seleniumServerJar", "seleniumPort", "baseUrl",
       "rootElement", "browser", "chromeDriver", "chromeOnly", "sauceUser",
-      "sauceKey", "framework",
+      "sauceKey", "framework", "coverageFilename",
       //list
       "specs","exclude",
       //boolean
@@ -147,6 +147,10 @@ module.exports = function(grunt) {
       }
       return args;
     }, {});
+    
+    var coverageFilename=suppliedArgs['coverageFilename']
+        ? suppliedArgs['coverageFilename'].replace(".json", "")
+        : 'coverage';
     var configDir=path.dirname(path.resolve(opts.configFile));
     grunt.file.mkdir(coverageDir);
 
@@ -237,7 +241,7 @@ module.exports = function(grunt) {
           }
           getCoverageData(function(payload){
             try{
-              var filename=path.normalize([coverageDir,'/coverage.json'].join(''));
+              var filename=path.normalize([coverageDir,'/'+coverageFilename+'.json'].join(''));
               fs.writeFileSync(filename, payload);
             }catch(e){
               grunt.log.error("Got error: " + e.message);
