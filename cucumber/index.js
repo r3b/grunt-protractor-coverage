@@ -27,7 +27,7 @@ function getCoverage(callback) {
     if (coverage) {
       saveCoverage(coverage);
     }
-    callback();
+    typeof callback === 'function' && callback();
   });
 }
 
