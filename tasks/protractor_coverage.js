@@ -174,7 +174,11 @@ module.exports = function(grunt) {
       }));
     var gargs=grunt.option.flags()
       .filter(function(f){return args.indexOf(f)===-1;})
-      .map(function(f){return f.split('=');})
+      .map(function(f){
+        if(f.indexOf('--debug') === 0) {
+          f = '--debug';
+        }
+        return f.split('=');})
       .reduce(function(a, f){return a.concat(f);},[]);
     args=args.concat(gargs);
 
